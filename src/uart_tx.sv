@@ -2,11 +2,12 @@ module uart_tx #(
     parameter F_CLK = 50_000_000,
     parameter R_BAUD = 115_200
 ) (
+    // Inputs
     input logic clk,
     input logic rst_n,
     input logic [7:0] data_i,
     input logic valid_i,
-    // Make char one object, accept multiple chars per transmission (maybe)
+    // Outputs
     output logic ready_o,
     output logic message_o
 );
@@ -14,29 +15,31 @@ module uart_tx #(
 typedef enum logic { Idle, Tx } state_t;
 state_t state_d, state_q;
 
-// Uncoded and Coded data
+// Coded data for shift register
 logic [10:0] frame_d, frame_q;
-
-// Transmission bit and frame index
-logic [3:0] idx_d, idx_q;
 assign message_o = frame_q[0];
+
+// Frame index
+logic [3:0] idx_d, idx_q;
 
 // Ready?
 logic ready_q, ready_d;
 assign ready_o = ready_q;
 
-// Slower clock division
+// Clock division and register width magic
 localparam int DIV = F_CLK/R_BAUD;
 localparam int DIV_BITS = $clog2(DIV);
 localparam logic [DIV_BITS-1:0] DIV_MAX = DIV_BITS'(DIV-1);
 logic [DIV_BITS-1:0] baudcnt;
+
+// Ticking the baud clock
 logic baud_tick; 
 assign baud_tick = (baudcnt == DIV_MAX);
 
-
 localparam LAST_FRAME_IDX = 4'd10;
-// Combo FF for a few signals
-always_ff @( posedge clk, negedge rst_n ) begin : Transmit
+
+// Combo FF for all
+always_ff @( posedge clk, negedge rst_n ) begin : TransmitFF
     if (!rst_n) begin
         ready_q <= 'b1;
         state_q <= Idle;
@@ -65,7 +68,6 @@ always_comb begin
                 frame_d = create_frame(data_i);
                 ready_d = 'b0;
             end
-            
         end
         Tx: begin
             state_d = state_q;
@@ -84,28 +86,24 @@ always_comb begin
                     idx_d = 'b0;
                 end
             end
-
-
-
         end
-
         default: begin
             state_d = state_q;
             ready_d = ready_q;
             frame_d = frame_q;
-
+            idx_d = idx_q;
         end
     endcase
 end
 
-
+// Function to code a frame wide-sense systematic encoding btw
 function automatic logic[10:0] create_frame (logic[7:0] data);
     logic parity = 0;
     parity = ^data;
-    return {1'b1, parity,data,1'b0};    
+    create_frame = {1'b1, parity, data, 1'b0};
 endfunction
 
-// Pulse Baud tick when new baud has started
+// Count up for baud ticks
 always_ff @( posedge clk, negedge rst_n ) begin : BaudCountFF
     if (!rst_n)                 baudcnt <= 'b0;
     else if (state_q == Idle)   baudcnt <= 'b0;

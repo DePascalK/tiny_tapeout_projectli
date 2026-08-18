@@ -2,11 +2,12 @@ module word_to_uart #(
     parameter F_CLK = 50_000_000,
     parameter R_BAUD = 115_200
 ) (
+    // Inputs
     input logic clk,
     input logic rst_n,
     input logic [31:0] word_i,
     input logic valid_i,
-    // Make char one object, accept multiple chars per transmission (maybe)
+    // Outputs
     output logic ready_o,
     output logic message_thru
 );
@@ -27,13 +28,8 @@ typedef logic [7:0] byte_t;
 logic [7:0] byte_o;
 assign byte_o = wordsr_q[7:0];
 
-// logic valid_byte_d,valid_byte_q;
-
 // Submodule is ready to accept byte
 logic ready_byte;
-
-// // Queue
-// byte_t queuebyte [$];
 
 uart_tx  #(
     .F_CLK      (F_CLK),

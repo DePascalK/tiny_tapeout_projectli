@@ -16,10 +16,13 @@ module tt_um_depascalk (
     input  logic       rst_n     // reset_n - low to reset
 );
 
+    // Make the code testbench-friendly
     logic ready_uart;
     logic message_out;
     logic valid_word;
     parameter WORD = 32'b0001_1010_0010_1011_0011_1100_0100_1101;
+
+    // Instantiate uart word transmission
     word_to_uart #(
         .F_CLK      (50_000_000),
         .R_BAUD     (115_200)
