@@ -6,7 +6,7 @@ SIM ?= icarus
 FST ?= -fst # Use more efficient FST format
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = project.sv, uart_tx.sv
+PROJECT_SOURCES = project.sv uart_tx.sv word_to_uart.sv
 
 # Which testbench to build: "project" (default, full chip via tb.v) or
 # "uart_tx" (standalone uart_tx module test via tb_uart_tx.v). Select with

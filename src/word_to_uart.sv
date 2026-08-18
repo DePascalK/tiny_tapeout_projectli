@@ -22,9 +22,6 @@ assign valid_byte = (cnt_q != 'b0);
 
 
 // Valid output byte and output byte
-// typedef struct packed {
-//     logic [7:0] value;
-// } byte_t;
 typedef logic [7:0] byte_t;
 
 logic [7:0] byte_o;
@@ -70,11 +67,8 @@ always_comb begin : AllComb
         wordsr_d = word_i;
         cnt_d = 3'd4;
     end else if (valid_byte && ready_byte) begin
-        
         wordsr_d = {8'b0, wordsr_q[31:8]};
         cnt_d = cnt_q - 'd1;
     end
-
 end
-
 endmodule

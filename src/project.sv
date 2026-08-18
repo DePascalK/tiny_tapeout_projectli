@@ -16,23 +16,30 @@ module tt_um_depascalk (
     input  logic       rst_n     // reset_n - low to reset
 );
 
-  logic ready_uart;
-  uart_tx uart_tx_inst (
-      .clk       (clk),
-      .rst_n     (rst_n),
-      .data_i    (ui_in),      // ui_in[7:0] carries the byte to send
-      .valid_i   (uio_in[0]),  // pulse uio_in[0] high for one clk to start a transmission
-      .ready_o   (ready_uart),
-      .message_o (uo_out[0])   // serial line
-  );
+    logic ready_uart;
+    logic message_out;
+    logic valid_word;
+    parameter WORD = 32'b0001_1010_0010_1011_0011_1100_0100_1101;
+    word_to_uart #(
+        .F_CLK      (50_000_000),
+        .R_BAUD     (115_200)
+    ) word_to_uart_inst (
+        .clk        (clk),
+        .rst_n      (rst_n),
+        .word_i     (WORD),
+        .valid_i    (valid_word),  // pulse uio_in[0] high for one clk to start a transmission
+        .ready_o    (ready_uart),
+        .message_thru (message_out)
+    );
 
-  // All output pins must be assigned. If not used, assign to 0.
-  assign uo_out[7:1] = '0;
-  assign uio_out      = {8'b0};
-  assign uio_oe       = 8'b0000_0001;  // uio[0] is an output (ready_o), rest are inputs
+    // All output pins must be assigned. If not used, assign to 0.
+    assign uo_out[7:0]  = {6'b0, ready_uart,message_out};
+    assign uio_out      = {8'b0};
+    assign uio_oe       = 8'b0000_0010;  // uio[1] is an output (ready_o), rest are inputs
 
-  // List all unused inputs to prevent warnings
-  logic _unused;
-  assign _unused = &{ena, uio_in[7:1], 1'b0};
+    assign valid_word = ui_in[0];
+    // List all unused inputs to prevent warnings
+    logic _unused;
+    assign _unused = &{ena, ui_in[7:1], uio_in[7:0]};
 
 endmodule
