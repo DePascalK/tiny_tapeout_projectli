@@ -16,13 +16,23 @@ module tt_um_depascalk (
     input  logic       rst_n     // reset_n - low to reset
 );
 
+  logic ready_uart;
+  uart_tx uart_tx_inst (
+      .clk       (clk),
+      .rst_n     (rst_n),
+      .data_i    (ui_in),      // ui_in[7:0] carries the byte to send
+      .valid_i   (uio_in[0]),  // pulse uio_in[0] high for one clk to start a transmission
+      .ready_o   (ready_uart),
+      .message_o (uo_out[0])   // serial line
+  );
+
   // All output pins must be assigned. If not used, assign to 0.
-  assign uo_out  = ui_in + uio_in;  // Example: ou_out is the sum of ui_in and uio_in
-  assign uio_out = '0;
-  assign uio_oe  = '0;
+  assign uo_out[7:1] = '0;
+  assign uio_out      = {8'b0};
+  assign uio_oe       = 8'b0000_0001;  // uio[0] is an output (ready_o), rest are inputs
 
   // List all unused inputs to prevent warnings
   logic _unused;
-  assign _unused = &{ena, clk, rst_n, 1'b0};
+  assign _unused = &{ena, uio_in[7:1], 1'b0};
 
 endmodule
