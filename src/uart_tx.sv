@@ -98,7 +98,7 @@ end
 
 // Function to code a frame wide-sense systematic encoding btw
 function automatic logic[10:0] create_frame (logic[7:0] data);
-    logic parity = 0;
+    logic parity;
     parity = ^data;
     create_frame = {1'b1, parity, data, 1'b0};
 endfunction
