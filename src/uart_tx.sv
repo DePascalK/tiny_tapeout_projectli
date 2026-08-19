@@ -53,7 +53,6 @@ always_ff @( posedge clk, negedge rst_n ) begin : TransmitFF
     end
 end
 
-
 always_comb begin
     case (state_q)
         Idle: begin
